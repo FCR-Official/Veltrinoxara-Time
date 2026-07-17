@@ -2,11 +2,11 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Veltrinoxara Clock</title>
+    <title>Veltrinoxara Chronometer</title>
     <style>
         body {
-            background-color: #050a0f; /* Deep space blue */
-            color: #00f2ff; /* Cyber-cyan */
+            background-color: #050a0f;
+            color: #00f2ff;
             font-family: 'Courier New', Courier, monospace;
             display: flex;
             flex-direction: column;
@@ -15,46 +15,55 @@
             height: 100vh;
             margin: 0;
         }
-        .container {
+        .clock-container {
             border: 1px solid #00f2ff;
-            padding: 40px;
-            box-shadow: 0 0 20px rgba(0, 242, 255, 0.2);
-            text-align: center;
+            padding: 30px;
+            margin: 10px;
+            width: 300px;
+            box-shadow: 0 0 15px rgba(0, 242, 255, 0.2);
         }
-        h1 { margin-bottom: 20px; text-transform: uppercase; letter-spacing: 2px; }
-        .clock { font-size: 2.5rem; margin: 10px 0; }
+        .label { font-size: 0.8rem; text-transform: uppercase; margin-bottom: 10px; }
+        .time { font-size: 2rem; }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <h1>Veltrinoxara Time</h1>
-        <div id="v-clock" class="clock">Loading...</div>
-        <div id="e-clock">Earth: <span id="e-time"></span></div>
+    <!-- Earth Clock -->
+    <div class="clock-container">
+        <div class="label">Earth Standard Time</div>
+        <div id="e-clock" class="time">00:00:00</div>
+    </div>
+
+    <!-- Veltrinoxara Clock -->
+    <div class="clock-container">
+        <div class="label">Veltrinoxara Cycle</div>
+        <div id="v-clock" class="time">Day 000 | 00:00</div>
     </div>
 
     <script>
+        // Set this to false to make the clock static
+        const isRunning = false; 
+
         function updateClocks() {
             const now = new Date();
             
-            // Earth Time Display
-            document.getElementById('e-time').innerText = now.toLocaleTimeString();
+            // Earth Clock
+            document.getElementById('e-clock').innerText = now.toLocaleTimeString();
 
-            // Veltrinoxara Logic
-            // Ratio: 26 hours / 24 hours = 1.08333...
-            // We use UTC timestamp to ensure consistency
-            const veltrinoxaraRatio = 26 / 24;
-            const earthMs = now.getTime();
-            const veltrinoxaraMs = earthMs / veltrinoxaraRatio;
-
-            // Calculate cycle components
-            const msPerDay = 1000 * 60 * 60 * 26;
-            const vDay = Math.floor(veltrinoxaraMs / msPerDay) % 400;
-            const vHour = Math.floor((veltrinoxaraMs / (1000 * 60 * 60)) % 26);
-            const vMinute = Math.floor((veltrinoxaraMs / (1000 * 60)) % 60);
-
-            document.getElementById('v-clock').innerText = 
-                `Day ${vDay} | ${vHour.toString().padStart(2, '0')}:${vMinute.toString().padStart(2, '0')}`;
+            // Veltrinoxara Clock
+            if (isRunning) {
+                const veltrinoxaraRatio = 26 / 24;
+                const vTime = now.getTime() / veltrinoxaraRatio;
+                const vDay = Math.floor(vTime / (1000 * 60 * 60 * 26)) % 400;
+                const vHour = Math.floor((vTime / (1000 * 60 * 60)) % 26);
+                const vMinute = Math.floor((vTime / (1000 * 60)) % 60);
+                
+                document.getElementById('v-clock').innerText = 
+                    `Day ${vDay.toString().padStart(3, '0')} | ${vHour.toString().padStart(2, '0')}:${vMinute.toString().padStart(2, '0')}`;
+            } else {
+                // Static display if isRunning is false
+                document.getElementById('v-clock').innerText = `Day 142 | 13:00`;
+            }
         }
 
         setInterval(updateClocks, 1000);
