@@ -1,73 +1,55 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Veltrinoxara Chronometer</title>
     <style>
-        body {
-            background-color: #050a0f;
-            color: #00f2ff;
-            font-family: 'Courier New', Courier, monospace;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            margin: 0;
-        }
-        .clock-container {
-            border: 1px solid #00f2ff;
-            padding: 30px;
-            margin: 10px;
-            width: 300px;
-            box-shadow: 0 0 15px rgba(0, 242, 255, 0.2);
-        }
-        .label { font-size: 0.8rem; text-transform: uppercase; margin-bottom: 10px; }
-        .time { font-size: 2rem; }
+        body { background: #050a0f; color: #00f2ff; font-family: monospace; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+        .clock-box { border: 1px solid #00f2ff; padding: 20px; text-align: center; }
+        .analog { width: 150px; height: 150px; border: 4px solid #00f2ff; border-radius: 50%; position: relative; margin: 20px auto; }
+        .hand { position: absolute; bottom: 50%; left: 50%; transform-origin: bottom; background: #00f2ff; }
+        .hour-hand { width: 4px; height: 40px; }
+        .minute-hand { width: 2px; height: 60px; }
     </style>
 </head>
 <body>
 
-    <!-- Earth Clock -->
-    <div class="clock-container">
-        <div class="label">Earth Standard Time</div>
-        <div id="e-clock" class="time">00:00:00</div>
-    </div>
-
-    <!-- Veltrinoxara Clock -->
-    <div class="clock-container">
-        <div class="label">Veltrinoxara Cycle</div>
-        <div id="v-clock" class="time">Day 000 | 00:00</div>
+    <div class="clock-box">
+        <div id="v-digital" style="font-size: 1.5rem;">Day 000 | 00:00:00</div>
+        <div class="analog">
+            <div id="hour-hand" class="hand hour-hand"></div>
+            <div id="minute-hand" class="hand minute-hand"></div>
+        </div>
     </div>
 
     <script>
-        // Set this to false to make the clock static
-        const isRunning = false; 
-
-        function updateClocks() {
-            const now = new Date();
+        // Start time reference
+        const startTime = new Date().getTime();
+        
+        function updateVeltrinoxara() {
+            const now = new Date().getTime();
+            const elapsedEarthMs = now - startTime;
             
-            // Earth Clock
-            document.getElementById('e-clock').innerText = now.toLocaleTimeString();
+            // Veltrinoxara runs 26/24 times faster than Earth time
+            const veltrinoxaraMs = elapsedEarthMs * (26 / 24);
 
-            // Veltrinoxara Clock
-            if (isRunning) {
-                const veltrinoxaraRatio = 26 / 24;
-                const vTime = now.getTime() / veltrinoxaraRatio;
-                const vDay = Math.floor(vTime / (1000 * 60 * 60 * 26)) % 400;
-                const vHour = Math.floor((vTime / (1000 * 60 * 60)) % 26);
-                const vMinute = Math.floor((vTime / (1000 * 60)) % 60);
-                
-                document.getElementById('v-clock').innerText = 
-                    `Day ${vDay.toString().padStart(3, '0')} | ${vHour.toString().padStart(2, '0')}:${vMinute.toString().padStart(2, '0')}`;
-            } else {
-                // Static display if isRunning is false
-                document.getElementById('v-clock').innerText = `Day 142 | 13:00`;
-            }
+            const vTotalSeconds = Math.floor(veltrinoxaraMs / 1000);
+            const vSecond = vTotalSeconds % 60;
+            const vMinute = Math.floor(vTotalSeconds / 60) % 60;
+            const vHour = Math.floor(vTotalSeconds / 3600) % 26;
+            const vDay = Math.floor(vTotalSeconds / (3600 * 26)) % 400;
+
+            // Update Digital
+            document.getElementById('v-digital').innerText = 
+                `Day ${vDay.toString().padStart(3, '0')} | ${vHour.toString().padStart(2, '0')}:${vMinute.toString().padStart(2, '0')}:${vSecond.toString().padStart(2, '0')}`;
+
+            // Update Analog
+            const hourDeg = (vHour / 26) * 360 + (vMinute / 26) * 6;
+            const minuteDeg = (vMinute / 60) * 360;
+            
+            document.getElementById('hour-hand').style.transform = `rotate(${hourDeg}deg)`;
+            document.getElementById('minute-hand').style.transform = `rotate(${minuteDeg}deg)`;
         }
 
-        setInterval(updateClocks, 1000);
-        updateClocks();
+        setInterval(updateVeltrinoxara, 1000);
     </script>
 </body>
 </html>
